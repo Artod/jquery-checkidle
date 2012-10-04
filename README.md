@@ -57,15 +57,13 @@ May also be passed an optional options object which will extend the default valu
 
 You can create multiple handlers for any period of time
     <script>
+	
         $(document).ready(function() {
 			var checkIdle = $.checkIdle($(document));
 
 			checkIdle.onWait(5*60000, function() {
-				alert('onWait 5 minutes!');
-			}).onWait(20*60000, function() {
-				alert('onWait 20 minutes!');
-			}).onWait(60*60000, function() {
-				alert('onWait 1 hour!');
+ddcdcdc
 			});
         });
+		
     </script>
