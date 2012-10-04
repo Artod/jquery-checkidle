@@ -60,6 +60,7 @@ You can create multiple handlers for any period of time:
     <script>
         $(document).ready(function() {
 			var checkIdle = $.checkIdle($(document));
+			
 			checkIdle.onWait(5*60000, function() {
 				alert('onWait 5 minutes!');
 			}).onWait(20*60000, function() {
