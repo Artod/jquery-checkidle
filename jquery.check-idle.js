@@ -1,6 +1,6 @@
 /*
 * jQuery CheckIdle
-* 04.10.2012 (c) http://artod.ru
+* 05.10.2012 (c) http://artod.ru
 */
 
 ;(function($) {
@@ -9,7 +9,7 @@
     var CheckIdle = function($els, options) {
 		this.opts = $.extend({
 			discret: 1000,
-			timeoutIdle: 5*60000,
+			idleAfter: 5*60000,
 			autoStart: true,
 			events: 'mousemove keydown DOMMouseScroll mousewheel mousedown touchstart touchmove',
 			onIdle: function() { },
@@ -21,7 +21,7 @@
 		this.timer = 0;
 		this.isIdle = false;
 		this.callbacksOnWait = [];
-		this.tmpCallbacksOnWait = [];
+		this.timeoutsOnWait = [];
 
 		if (this.opts.autoStart) {
 			this.start();
@@ -29,23 +29,6 @@
 	};
 
 	CheckIdle.prototype = {
-		check: function() {
-			if (this.isIdle) {
-				this.triggerOnWait();
-			} else if (this.timer >= this.opts.timeoutIdle) {
-				this.isIdle = true;
-				this.tmpCallbacksOnWait = [].concat(this.callbacksOnWait);
-				this.opts.onIdle();
-			}
-		},
-		reset: function() {
-			if (this.isIdle) {
-				this.isIdle = false;
-				this.onReturn(this.timer);
-			}
-
-			this.timer = 0;
-		},
 		start: function() {
 			this.stop();
 
@@ -60,29 +43,59 @@
 			});
 
 			this.check();
+
+			return this;
 		},
 		stop: function() {
 			this.$els.off('.checkIdle');
 			clearInterval(this.interval);
+			this.clearTimeoutsOnWait();
+
+			return this;
 		},
-		triggerOnWait: function() {
-			if (!this.tmpCallbacksOnWait.length) {
-				return;
+		check: function() {
+			if (!this.isIdle && this.timer >= this.opts.idleAfter) {
+				this.isIdle = true;
+
+				this.setTimeoutsOnWait();
+				this.opts.onIdle();
+			}
+		},
+		reset: function() {
+			if (this.isIdle) {
+				this.isIdle = false;
+				this.clearTimeoutsOnWait();
+				this.opts.onReturn(this.timer);
 			}
 
-			for (var i = 0; i < this.tmpCallbacksOnWait.length; i++) {
-				if (this.timer >= this.tmpCallbacksOnWait[i][0]) {
-					this.tmpCallbacksOnWait[i][1]();
-					this.tmpCallbacksOnWait.splice(i,1);
-				}
+			this.timer = 0;
+		},
+		setTimeoutsOnWait: function() {
+			this.clearTimeoutsOnWait();
+
+			var self = this;
+			for (var i = 0; i < this.callbacksOnWait.length; i++) {
+				(function() {
+					var j = i;
+					self.timeoutsOnWait.push(setTimeout(function() {
+						self.callbacksOnWait[j][1]();
+					}, self.callbacksOnWait[j][0]));
+				})();
 			}
+
+			return this;
+		},
+		clearTimeoutsOnWait: function() {
+			for (var i = 0; i < this.timeoutsOnWait.length; i++) {
+				clearTimeout(this.timeoutsOnWait[i]);
+			}
+
+			return this;
 		},
 		onWait: function(timeout, callback) {
 			this.callbacksOnWait.push([timeout, callback]);
+
 			return this;
-		},
-		onReturn: function(timeOnIdle) {
-			this.opts.onReturn(timeOnIdle);
 		}
 	};
 

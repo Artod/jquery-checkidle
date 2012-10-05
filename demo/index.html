@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>jQuery CheckIdle Demo</title>
+		<meta charset="utf-8" />
+
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<script src="../jquery.check-idle.js"></script>
+
+		<style>
+			body > div {
+				width:100px; float:left; padding:10px; margin: 10px; border: 1px solid grey;
+			}
+		</style>
+
+		<script>//<!--
+			$(document).ready(function() {
+				var multiplyText = function(text, sum) {for(var out = '', i = 0; i < sum; i++){out += text}; return out;};
+
+				var $body = $('body');
+				$body.append( multiplyText('<div></div>', 5) );
+
+				$body.find('> div').each(function() {
+					var $container = $(this);
+					$container.append('<div>Start!</div>');
+
+					var checkIdle = $.checkIdle($container, {
+						idleAfter: 2000,
+						onIdle: function() {
+							$container.css('border', '1px solid red').append('<div>onIdle!</div>');
+						},
+						onReturn: function() {
+							$container.css('border', '1px solid grey').append('<div>onReturn!</div>');
+						}
+					});
+
+					for (var i = 1; i < 11; i++) {
+						(function() {
+							var time = i*1000;
+							checkIdle.onWait(time, function() {
+								$container.append('<div>Wait ' + time/1000 + ' sec!</div>');
+							});
+						})();
+					}
+				});
+			});
+		//--></script>
+	</head>
+	<body>
+
+	</body>
+</html>
